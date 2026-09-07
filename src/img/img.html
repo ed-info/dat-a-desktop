@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .animated-image {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        }
+        .animated-logo {
+            position: absolute;
+            width: 300px;
+            height: 100px;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+    <img id="part1" class="animated-image" src="part1.png" style="display: none;">
+    <img id="part2" class="animated-image" src="part2.png" style="display: none;">
+    <img id="part3" class="animated-image" src="part3.png" style="display: none;">
+    <img id="part4" class="animated-image" src="part4.png" style="display: none;">
+    <img id="part5" class="animated-image" src="part5.png" style="display: none;">
+    <img id="logo" class="animated-logo" src="logo.png" style="display: none;">
+
+    <script>
+        const cx = () => window.innerWidth  / 2 - 50;
+        const cy = () => window.innerHeight / 2 - 50;
+        const logoX = () => cx() - 200;
+
+        function animatePart({ id, axis, startFn, targetFn, fixedXFn, fixedYFn }, callback) {
+            const el = document.getElementById(id);
+            const start  = startFn();
+            const target = targetFn();
+            const step   = 20;
+            const forward = start < target;
+
+            el.style.display = 'block';
+            el.style.left = (axis === 'x' ? start : (fixedXFn ? fixedXFn() : cx())) + 'px';
+            el.style.top  = (axis === 'y' ? start : (fixedYFn ? fixedYFn() : cy())) + 'px';
+
+            let cur = start;
+
+            const interval = setInterval(() => {
+                cur = forward
+                    ? Math.min(cur + step, target)
+                    : Math.max(cur - step, target);
+
+                el.style[axis === 'x' ? 'left' : 'top'] = cur + 'px';
+
+                if (cur === target) {
+                    clearInterval(interval);
+                    callback?.();
+                }
+            }, 10);
+        }
+
+        const parts = [
+            { id: 'part1', axis: 'x', startFn: () => window.innerWidth - 100, targetFn: cx,              fixedYFn: cy },
+            { id: 'part2', axis: 'x', startFn: () => 0,                        targetFn: cx,              fixedYFn: () => cy() - 15 },
+            { id: 'part3', axis: 'x', startFn: () => window.innerWidth - 100,  targetFn: cx,              fixedYFn: () => cy() - 30 },
+            { id: 'part4', axis: 'x', startFn: () => window.innerWidth - 100,  targetFn: cx,              fixedYFn: () => cy() - 10 },
+            { id: 'part5', axis: 'y', startFn: () => 0,                        targetFn: () => cy() - 55, fixedXFn: cx },
+        ];
+
+        function revealLogo() {
+            setTimeout(() => {
+                parts.forEach(({ id }) => {
+                    document.getElementById(id).style.display = 'none';
+                });
+
+                const logo = document.getElementById('logo');
+                logo.style.left = logoX() + 'px';
+                logo.style.top  = cy() + 'px';
+                logo.style.display = 'block';
+
+                animatePart({
+                    id: 'logo',
+                    axis: 'y',
+                    startFn: cy,
+                    targetFn: () => cy() - 200,
+                    fixedXFn: logoX,
+                }, () => console.log('Лого на місці'));
+            }, 500);
+        }
+
+        function startAnimations() {
+            [...parts, { id: 'logo' }].forEach(({ id }) => {
+                document.getElementById(id).style.display = 'none';
+            });
+
+            function runNext(index) {
+                if (index >= parts.length) {
+                    revealLogo();
+                    return;
+                }
+                animatePart(parts[index], () => runNext(index + 1));
+            }
+
+            runNext(0);
+        }
+
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(startAnimations, 300);
+        });
+
+        window.addEventListener('load', startAnimations);
+    </script>
+</body>
+</html>
