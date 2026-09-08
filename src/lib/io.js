@@ -14,7 +14,7 @@ function appSettingSet(key, value) {
 }
 
 // Ключі налаштувань що зберігаються разом із базою (у localStorage під "dbName.app-settings")
-const APP_SETTING_KEYS = ["storeFilesInDb","darkTheme","language","simpleInterface","autoLoadLastDb"];
+const APP_SETTING_KEYS = ["storeFilesInDb","darkTheme","language","autoLoadLastDb"];
 
 // Читає прив'язані налаштування конкретного файлу бази з localStorage
 function loadDbSettings(dbName) {

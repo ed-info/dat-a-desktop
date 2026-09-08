@@ -86,7 +86,6 @@
             <a href="#" onclick="openSettingsModal()" lang-i18n="settings">🛠️ Налаштування</a>
             <a href="#" onclick="showAboutModal()" lang-i18n="aboutProgram">😉 Про програму</a> </div>
 		</div>
-		<img src="img/launcher-icon.png" alt="Альтернативне меню" onclick="openMainMenu()" style="cursor: pointer; width:32px; height:32px; padding: 4px 8px; margin-left: auto; align-self: center;">
 	</div>
 	<div class="title-bar">
 		<div id="mainTitle"> <span lang-i18n="selectOrCreateDatabase">Виберіть або створіть базу даних</span> </div> 
@@ -1021,7 +1020,7 @@
 					<div class="icon">📤</div>
 					<div class="label" lang-i18n="exportSQLite">Експорт sqlite</div>
 				</div>
-				<div class="modal-icon" onclick="showDatabaseInfo()">
+				<div class="modal-icon database-info-action" onclick="showDatabaseInfo()">
 					<div class="icon">ℹ️</div>
 					<div class="label" lang-i18n="info">Відомості</div>
 				</div>
@@ -1622,11 +1621,6 @@
                 </label>
                 
                 <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-                    <input type="checkbox" id="simpleInterfaceCheckbox"> 
-                    <span lang-i18n="simpleInterfaceCheckbox">Автозавантаження простого інтерфейсу</span>
-                </label>
-                
-                <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
                     <input type="checkbox" id="darkThemeCheckbox"> 
                     <span lang-i18n="darkThemeCheckbox">Темна тема</span>
                 </label>
@@ -1984,13 +1978,13 @@
 
         <!-- Заголовок -->
         <div class="modal-header">
-            <span class="modal-title">🔒 <span lang-i18n="lockModalTitle">Блокування об'єктів бази даних</span></span>
+            <span class="modal-title"><span class="ui-icon">🔒</span><span lang-i18n="lockModalTitle">Блокування об'єктів бази даних</span></span>
             <div style="display: flex; gap: 6px; margin-left: auto;">
                 <button id="saveLockBtn" class="slim-btn">
-                    💾 <span lang-i18n="save">Зберегти</span>
+                    <span class="ui-icon">💾</span><span lang-i18n="save">Зберегти</span>
                 </button>
                 <button id="cancelLockBtn" class="slim-btn">
-                    <span style="font-size:12px;">❌</span>
+                    <span class="ui-icon" style="font-size:12px;">❌</span>
                     <span style="font-size:10px;" lang-i18n="cancel">Скасувати</span>
                 </button>
             </div>

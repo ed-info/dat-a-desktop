@@ -179,7 +179,9 @@ function advDataInput(container, cellData, col, rowData, index, isReadOnly) {
     container.innerHTML = "";
     let createdEl = null;
 
-    const typeStr = String(col?.type || "").toLowerCase();
+    const typeStr = String(col?.type || "").trim().toLowerCase();
+    const fieldName = String(col?.title || "").trim().toLowerCase();
+    const imageField = /^(image|img|photo|picture|зображ)/.test(fieldName);
     const isIntegerType = typeStr === "integer" || typeStr === "ціле число" || typeStr === "int";
     const isPK = !!col?.primaryKey;
     const isPKAuto = isPK && isIntegerType && col?.autoInc === true;
@@ -488,7 +490,7 @@ if (isForeignKey) {
 	// ===== IMAGE =====
     // STORE_FILES_IN_DB = false → зберігається лише URL (рядок)
     // STORE_FILES_IN_DB = true  → зберігається blob (Uint8Array)
-    else if (typeStr === "image") {
+    else if (/^(image|зображ|blob)/.test(typeStr) || imageField) {
         const storeInDb = localStorage.getItem("app_settings_storeFilesInDb") === "true";
 
         rowData[index] = cellData || null;
@@ -500,14 +502,15 @@ if (isForeignKey) {
             ? (cellData instanceof Uint8Array && cellData.length > 0)
             : !!cellData;
 
-        btn.textContent = hasImage ? "🖼️" : "+";
+        btn.innerHTML = hasImage ? '<span class="ui-icon">🖼️</span>' : "+";
         btn.disabled = !!isReadOnly;
         btn.title = hasImage ? t("aeditImageView") : t("aeditImageAdd");
 
         Object.assign(btn.style, {
             border: "none",
             background: "transparent",
-            font: "24px Arial, sans-serif",
+            fontSize: "24px",
+            fontFamily: "'Noto Color Emoji', 'Segoe UI Emoji', sans-serif",
             cursor: isReadOnly ? "default" : "pointer",
             padding: "0",
             margin: "0",
@@ -527,7 +530,7 @@ if (isForeignKey) {
                 openFileEditor(rowData[index], (val) => {
                     rowData[index] = val;
                     const newMeta = val ? decodeFileBlob(val) : null;
-                    btn.textContent = val ? "🖼️" : "+";
+                    btn.innerHTML = val ? '<span class="ui-icon">🖼️</span>' : "+";
                     btn.title = newMeta ? newMeta.name : t("aeditImageAdd");
                 });
             } else {
@@ -535,7 +538,7 @@ if (isForeignKey) {
                 openImageEditor(col.title, rowData[index], (val) => {
                     rowData[index] = val;
                     const hasNewImage = !!val;
-                    btn.textContent = hasNewImage ? "🖼️" : "+";
+                    btn.innerHTML = hasNewImage ? '<span class="ui-icon">🖼️</span>' : "+";
                     btn.title = hasNewImage ? t("aeditImageView") : t("aeditImageAdd");
                 });
             }
@@ -547,7 +550,7 @@ if (isForeignKey) {
     // ===== FILE =====
     // STORE_FILES_IN_DB = false → зберігається лише URL/шлях (рядок)
     // STORE_FILES_IN_DB = true  → зберігається blob (Uint8Array)
-    else if (typeStr === "file") {
+    else if (/^(file|файл)/.test(typeStr)) {
         const storeInDb = localStorage.getItem("app_settings_storeFilesInDb") === "true";
 
         // Визначаємо наявність файлу залежно від режиму
@@ -558,7 +561,7 @@ if (isForeignKey) {
         const meta = (storeInDb && hasFile) ? decodeFileBlob(cellData) : null;
 
         const btn = document.createElement("button");
-        btn.textContent = hasFile ? "📎" : "+";
+        btn.innerHTML = hasFile ? '<span class="ui-icon">📎</span>' : "+";
         btn.title = hasFile
             ? (storeInDb ? meta.name : cellData)
             : t("aeditFileAdd");
@@ -567,7 +570,8 @@ if (isForeignKey) {
         Object.assign(btn.style, {
             border: "none",
             background: "transparent",
-            font: "24px Arial, sans-serif",
+            fontSize: "24px",
+            fontFamily: "'Noto Color Emoji', 'Segoe UI Emoji', sans-serif",
             cursor: isReadOnly ? "default" : "pointer",
             padding: "0",
             margin: "0",
@@ -587,7 +591,7 @@ if (isForeignKey) {
                 openFileEditor(rowData[index], (val) => {
                     rowData[index] = val;
                     const newMeta = val ? decodeFileBlob(val) : null;
-                    btn.textContent = val ? "📎" : "+";
+                    btn.innerHTML = val ? '<span class="ui-icon">📎</span>' : "+";
                     btn.title = newMeta ? newMeta.name : t("aeditFileAdd");
                 });
             } else {
@@ -595,7 +599,7 @@ if (isForeignKey) {
                 openUrlEditor(col.title, rowData[index], (val) => {
                     rowData[index] = val || null;
                     const hasNewFile = !!val;
-                    btn.textContent = hasNewFile ? "📎" : "+";
+                    btn.innerHTML = hasNewFile ? '<span class="ui-icon">📎</span>' : "+";
                     btn.title = hasNewFile ? val : t("aeditFileAdd");
                 });
             }
@@ -1000,7 +1004,9 @@ function editData(tableName) {
         for (let i = 0; i < columns.length; i++) {
             const col = document.createElement('col');
             const w = currentEditTable?.columnWidths?.[i];
-            col.style.width = (w ? w : COL_DEFAULT_WIDTH) + 'px';
+            const type = String(table.schema[i]?.type || '').trim().toLowerCase();
+            const numeric = !table.schema[i]?.foreignKey && ['integer', 'int', 'ціле число', 'real', 'дійсне число', 'дробове число', 'numeric', 'float'].includes(type);
+            col.style.width = (w ? w : (numeric ? 80 : COL_DEFAULT_WIDTH)) + 'px';
             colgroup.appendChild(col);
         }
         tableEl.insertBefore(colgroup, tableEl.querySelector('thead') || tableEl.firstChild);
@@ -1097,6 +1103,28 @@ function editData(tableName) {
             const colSchema = table.schema[index];
 
             const el = advDataInput(td, cellData, colSchema, rowData, index, isQueryTable);
+
+            const mediaType = String(colSchema?.type || "").trim().toLowerCase();
+            if (el === td && /^(image|зображ|blob|file|файл)/i.test(mediaType)) {
+                const isFile = /^(file|файл)/i.test(mediaType);
+                const mediaButton = document.createElement("button");
+                mediaButton.type = "button";
+                mediaButton.innerHTML = cellData
+                    ? `<span class="ui-icon">${isFile ? "📎" : "🖼️"}</span>` : "+";
+                mediaButton.title = cellData ? (isFile ? "Переглянути файл" : "Переглянути зображення") : "Додати файл";
+                mediaButton.style.cssText = "border:0;background:transparent;font-size:24px;cursor:pointer;width:100%;height:100%;";
+                mediaButton.onclick = () => {
+                    const done = value => {
+                        rowData[index] = value;
+                        mediaButton.innerHTML = value
+                            ? `<span class="ui-icon">${isFile ? "📎" : "🖼️"}</span>` : "+";
+                    };
+                    if (isFile) openFileEditor(rowData[index], done);
+                    else openImageEditor(colSchema.title, rowData[index], done);
+                };
+                td.innerHTML = "";
+                td.appendChild(mediaButton);
+            }
 
             // 🔹 Спеціальна підтримка кастомного datepicker:
             if (el && el.tagName === 'CUSTOM-DATE-PICKER') {

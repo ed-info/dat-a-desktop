@@ -32,6 +32,91 @@ function setLoadingTitle(name) {
 function yieldToUi() {
     return new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
 }
+
+function makeModalsDraggable() {
+    document.querySelectorAll(".modal-box, .modal-content").forEach(modal => {
+        if (modal.dataset.draggable === "1") return;
+        modal.dataset.draggable = "1";
+        modal.addEventListener("pointerdown", event => {
+            if (event.target.closest("button, input, select, textarea, a, table, [contenteditable='true']")) return;
+            if (event.offsetX >= modal.clientWidth - 18 || event.offsetY >= modal.clientHeight - 18) return;
+
+            const rect = modal.getBoundingClientRect();
+            const startX = event.clientX;
+            const startY = event.clientY;
+            const startLeft = rect.left;
+            const startTop = rect.top;
+            modal.style.position = "fixed";
+            modal.style.left = `${startLeft}px`;
+            modal.style.top = `${startTop}px`;
+            modal.style.margin = "0";
+            modal.style.transform = "none";
+            modal.setPointerCapture(event.pointerId);
+
+            const move = e => {
+                modal.style.left = `${startLeft + e.clientX - startX}px`;
+                modal.style.top = `${startTop + e.clientY - startY}px`;
+            };
+            const stop = () => {
+                modal.removeEventListener("pointermove", move);
+                modal.removeEventListener("pointerup", stop);
+                modal.removeEventListener("pointercancel", stop);
+            };
+            modal.addEventListener("pointermove", move);
+            modal.addEventListener("pointerup", stop);
+            modal.addEventListener("pointercancel", stop);
+        });
+    });
+}
+
+function makeDataModalsResizable() {
+    const selectors = [
+        "#editModal .modal-box",
+        "#reportPreview",
+        "#reportCreatorModalContent",
+        "#formCreatorModalContent",
+        "#formPreviewModal .modal-content",
+        "#dataViewModal .modal-box"
+    ];
+    document.querySelectorAll(selectors.join(",")).forEach(modal => {
+        if (modal.querySelector(":scope > .resize-grip")) return;
+        modal.style.resize = "none";
+        modal.style.overflow = "auto";
+        modal.style.minWidth = modal.style.minWidth || "420px";
+        modal.style.minHeight = modal.style.minHeight || "280px";
+        if (getComputedStyle(modal).position === "static") modal.style.position = "relative";
+
+        const grip = document.createElement("div");
+        grip.className = "resize-grip";
+        grip.addEventListener("pointerdown", event => {
+            event.preventDefault();
+            event.stopPropagation();
+            const startX = event.clientX;
+            const startY = event.clientY;
+            const startWidth = modal.offsetWidth;
+            const startHeight = modal.offsetHeight;
+            grip.setPointerCapture(event.pointerId);
+            const move = e => {
+                modal.style.width = `${Math.max(420, startWidth + e.clientX - startX)}px`;
+                modal.style.height = `${Math.max(280, startHeight + e.clientY - startY)}px`;
+            };
+            const stop = () => {
+                grip.removeEventListener("pointermove", move);
+                grip.removeEventListener("pointerup", stop);
+                grip.removeEventListener("pointercancel", stop);
+            };
+            grip.addEventListener("pointermove", move);
+            grip.addEventListener("pointerup", stop);
+            grip.addEventListener("pointercancel", stop);
+        });
+        modal.appendChild(grip);
+    });
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+    makeModalsDraggable();
+    makeDataModalsResizable();
+});
 /**
 * Функція closeEditModal()
 * Призначення: Закриває вікно редагування таблиці, скидаючи вибрані значення.
@@ -363,59 +448,10 @@ function updateQuickAccessPanel(tables, qqueries, reports, forms) {
 }
     
 
-function openMainMenu() {
-      document.getElementById("mainMenuModal").style.display = "flex";
-}
-
-function closeMainMenu() {
-      document.getElementById("mainMenuModal").style.display = "none";
-}
-    
 function closeAllModals() {
       document.querySelectorAll(".modal").forEach(modal => {
         modal.style.display = "none";
       });
-}
-    
-function filesMenu() {
-      closeAllModals();
-      document.getElementById("files_Modal").style.display = "flex";
-}
-    
-function createMenu() {
-      closeAllModals();
-      document.getElementById("create_Modal").style.display = "flex";
-}
-    
- function dataMenu() {
-      closeAllModals();
-      document.getElementById("data_Modal").style.display = "flex";
-      document.getElementById("data_Modal").style.display = "flex";
-}
-    
-function tablesMenu() {
-      closeAllModals();
-      document.getElementById("tables_Modal").style.display = "flex";
-}
-    
-function queriesMenu() {
-      closeAllModals();
-      document.getElementById("queries_Modal").style.display = "flex";
-}
-    
-function reportsMenu() {
-      closeAllModals();
-      document.getElementById("reports_Modal").style.display = "flex";
- }
-    
- function formsMenu() {
-      closeAllModals();
-      document.getElementById("forms_Modal").style.display = "flex";
-}
-    
-function helpMenu() {
-      closeAllModals();
-      document.getElementById("help_Modal").style.display = "flex";
 }
     
 window.addEventListener("click", function(event) {

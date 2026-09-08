@@ -721,71 +721,20 @@ function closeElDeleteModal() {
 
 // Перегляд створеного звіту
 function printReportPreview() {
-        const previewContent = document.getElementById("reportPreviewCanvas");
-    
-        if (!previewContent) {
-            alert(t("reportNoPrint"));
-            return;
-        }
-    
-        // Створюємо нове вікно для друку
-        const printWindow = window.open('', '_blank');
-    
-        // Формуємо вміст
-        printWindow.document.write(`
-            <html>
-            <head>
-                <title>${t("reportPrintTitle")}</title>
-                <style>
-                    body { margin: 0; font-family: Arial, sans-serif; }
-                    #reportPreviewCanvas {
-                        position: relative;
-                        width: 100%;
-                        height: auto;
-                        border: none;
-                    }
-                    .report-label, .report-field {
-                        position: absolute;
-                        box-sizing: border-box;
-                        border: 1px solid #ccc;
-                        padding: 2px;
-                    }
-                    .field-text {
-                        font-style: italic;
-                    }
-                    .report-table {
-                        position: absolute;
-                        box-sizing: border-box;
-                        overflow: auto;
-                    }
-                    .report-table table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        font-size: 11px;
-                    }
-                    .report-table th, .report-table td {
-                        border: 1px solid #999;
-                        padding: 4px 6px;
-                        white-space: nowrap;
-                    }
-                    .report-table th {
-                        background-color: #d0d0d0;
-                    }
-                </style>
-            </head>
-            <body>
-                <div id="reportPreviewCanvas">
-                    ${previewContent.innerHTML}
-                </div>
-                <script>
-                    window.onload = function() {
-                        window.print();
-                        window.onafterprint = () => window.close();
-                    };
-                <\/script>
-            </body>
-            </html>
-        `);
-    
-        printWindow.document.close();
+    const previewModal = document.getElementById("reportPreviewModal");
+    if (!document.getElementById("reportPreviewCanvas")) {
+        alert(t("reportNoPrint"));
+        return;
     }
+
+    document.body.classList.add("printing-report");
+    const oldDisplay = previewModal?.style.display;
+    if (previewModal) previewModal.style.display = "block";
+
+    const cleanup = () => {
+        document.body.classList.remove("printing-report");
+        if (previewModal) previewModal.style.display = oldDisplay || "none";
+    };
+    window.addEventListener("afterprint", cleanup, { once: true });
+    setTimeout(() => window.print(), 50);
+}

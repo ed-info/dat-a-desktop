@@ -59,6 +59,14 @@
     padding-left: 2px;
     padding-right: 2px;
 }
+#schemaTable input[type="checkbox"],
+#editTable input[type="checkbox"],
+.query-table input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    display: block;
+    margin: auto;
+}
 #schemaTable td[data-role="ref-table"] select,
 #schemaTable td[data-role="ref-field"] select {
     width: 100%;
@@ -73,6 +81,27 @@
 #schemaHead th.icon-header:nth-child(7)::before { content: "🛟"; }
 .language-select {
     font-family: 'Noto Color Emoji', Arial, sans-serif;
+}
+body.dark-theme .language-select {
+    background-color: var(--dt-input-bg) !important;
+    color: var(--dt-text) !important;
+    border-color: var(--dt-border-hi) !important;
+}
+body.dark-theme .language-select option {
+    background-color: var(--dt-input-bg);
+    color: var(--dt-text);
+}
+body.dark-theme #languageSelect {
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: #2d2d2d !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23fff' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 10px 6px;
+    color: #fff !important;
+    border-color: #666 !important;
+    padding-right: 28px !important;
 }
 .scissors-header-icon {
     display: inline-block;
@@ -114,6 +143,19 @@
     cursor: pointer;
 }
 .date-picker-button:hover { color: #2563eb; }
+.resize-grip {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 18px;
+    height: 18px;
+    z-index: 20;
+    cursor: nwse-resize;
+    background: repeating-linear-gradient(135deg, transparent 0 1px, #888 1px 2px, transparent 2px 3px);
+    clip-path: polygon(100% 0, 100% 100%, 0 100%);
+    opacity: .75;
+}
+.resize-grip:hover { opacity: 1; }
 .square-btn .ui-icon,
 .wide-btn .ui-icon,
 .slim-btn .ui-icon,
@@ -130,6 +172,26 @@ body {
     font-family: Arial, sans-serif;
     background-image: url('pattern.png');
     background-repeat: repeat;
+}
+@media print {
+    body.printing-report > * { display: none !important; }
+    body.printing-report #reportPreviewModal {
+        display: block !important;
+        position: static !important;
+        background: #fff !important;
+    }
+    body.printing-report #reportPreview {
+        width: 100% !important;
+        max-width: none !important;
+        height: auto !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        background: #fff !important;
+    }
+    body.printing-report #reportPreviewCanvas {
+        overflow: visible !important;
+        border: 0 !important;
+    }
 }
 .center-image {
     text-align: center;
@@ -495,6 +557,52 @@ body {
     word-break: break-word;
     overflow: hidden;
 }
+#schemaTable,
+#editTable,
+.query-table,
+#dataViewTable {
+    font-size: 12px;
+}
+#dataViewTable { font-size: 11px; }
+#schemaTable th,
+#schemaTable td,
+#editTable th,
+#editTable td,
+.query-table th,
+.query-table td,
+#dataViewTable th,
+#dataViewTable td {
+    padding: 4px 6px;
+    line-height: 1.15;
+}
+#schemaTable select,
+#schemaTable input,
+#editTable select,
+#editTable input,
+.query-table select,
+.query-table input {
+    font-size: 12px !important;
+    min-height: 26px;
+    padding: 3px 5px;
+}
+#editTable select,
+#schemaTable select,
+.query-table select,
+#formPreviewModal select,
+#formCreatorModal select,
+.form-table select {
+    background-color: #fff !important;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23333' d='M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z'/%3E%3C/svg%3E");
+    background-position: right 8px center;
+    background-size: 8px 5px;
+    background-repeat: no-repeat;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 24px !important;
+}
 .dvFilterCol {
     width: 110px;
     min-width: 0;
@@ -548,12 +656,22 @@ body {
     font-size: 14px;
     margin-top: 6px;
 }
+.database-info-action {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+#toggleStructureBtn {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
 
 
 /* ── 12. Загальні елементи форми ── */
 
 select {
-    background-color: #f0f0f0;
+    background-color: #fff;
     color: #333;
     border: none;
     padding: 8px 12px;
@@ -1774,8 +1892,14 @@ body.dark-theme .computed-expr-display span { color: #fb923c; }
 
 #messageModal {
     position: fixed;      /* ← ЦЕ КРИТИЧНО */
-    top: 20px;
-    right: 20px;          /* або де хочеш */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
     z-index: 9999;        /* ← щоб бути поверх всього */
     opacity: 0;
     transition: opacity 0.5s ease;
@@ -1844,7 +1968,7 @@ body.dark-theme .computed-expr-display span { color: #fb923c; }
     }
 
     /* Внутрішній контейнер модального вікна */
-    .modal-box {
+.modal-box {
         background: #fff;
         padding: 20px;
         border-radius: 10px;

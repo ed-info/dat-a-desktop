@@ -2,7 +2,6 @@
 // Ключі для зберігання в localStorage
 const SETTINGS_KEYS = {
     AUTO_LOAD_LAST_DB: 'app_settings_autoLoadLastDb',
-    SIMPLE_INTERFACE: 'app_settings_simpleInterface',
     DARK_THEME: 'app_settings_darkTheme',
     LANGUAGE: 'app_settings_language',
     STORE_FILES_IN_DB: 'app_settings_storeFilesInDb'
@@ -46,9 +45,6 @@ function loadSettings() {
     document.getElementById('autoLoadLastDbCheckbox').checked =
         getSetting(SETTINGS_KEYS.AUTO_LOAD_LAST_DB, true);
 
-    const simpleInterface = getSetting(SETTINGS_KEYS.SIMPLE_INTERFACE, false);
-    document.getElementById('simpleInterfaceCheckbox').checked = simpleInterface;
-
     // Тема: якщо раніше не збережено — визначаємо з браузера і зберігаємо
     let darkTheme;
     if (localStorage.getItem(SETTINGS_KEYS.DARK_THEME) === null) {
@@ -67,19 +63,6 @@ function loadSettings() {
         localStorage.setItem(SETTINGS_KEYS.LANGUAGE, lang);
     }
     document.getElementById('languageSelect').value = lang;
-}
-
-// Застосування простого інтерфейсу 
-function applySimpleInterface(enabled) {
-    const simpleMenu = document.getElementById('quickAccessPanel').checked;
-    console.log("simpleMenu=",simpleMenu)
-    if (simpleMenu) {
-		console.log("simpleMenu=",simpleMenu)        
-        openMainMenu();
-        console.log("openMainMenu0");
-        closeSettingsModal();
-    }
-    localStorage.setItem(SETTINGS_KEYS.SIMPLE_INTERFACE, enabled);
 }
 
 //  Застосування темної теми 
@@ -126,13 +109,6 @@ function applyAppSettingsToUI(s) {
         if (s.language !== prevLang && typeof setLang === 'function') setLang(s.language);
     }
 
-    if (s.simpleInterface !== undefined) {
-        const v = s.simpleInterface === true || s.simpleInterface === "true";
-        const cb = document.getElementById('simpleInterfaceCheckbox');
-        if (cb) cb.checked = v;
-        localStorage.setItem(SETTINGS_KEYS.SIMPLE_INTERFACE, String(v));
-    }
-
     if (s.storeFilesInDb !== undefined) {
         const cb = document.getElementById('storeFilesInDbCheckbox');
         if (cb) cb.checked = s.storeFilesInDb === true || s.storeFilesInDb === "true";
@@ -160,8 +136,6 @@ function openSettingsModal() {
 
     document.getElementById('autoLoadLastDbCheckbox').checked =
         bool('autoLoadLastDb', SETTINGS_KEYS.AUTO_LOAD_LAST_DB);
-    document.getElementById('simpleInterfaceCheckbox').checked =
-        bool('simpleInterface', SETTINGS_KEYS.SIMPLE_INTERFACE);
     document.getElementById('darkThemeCheckbox').checked =
         bool('darkTheme', SETTINGS_KEYS.DARK_THEME);
     document.getElementById('storeFilesInDbCheckbox').checked =
@@ -183,7 +157,6 @@ function closeSettingsModal() {
 // Збереження налаштувань
 async function saveSettings() {
     const autoLoad        = document.getElementById('autoLoadLastDbCheckbox').checked;
-    const simpleInterface = document.getElementById('simpleInterfaceCheckbox').checked;
     const darkTheme       = document.getElementById('darkThemeCheckbox').checked;
     const storeFilesInDb  = document.getElementById('storeFilesInDbCheckbox').checked;
     const language        = document.getElementById('languageSelect').value;
@@ -191,7 +164,6 @@ async function saveSettings() {
 
     // Завжди зберігаємо глобально (для роботи до відкриття будь-якої бази)
     localStorage.setItem(SETTINGS_KEYS.AUTO_LOAD_LAST_DB,  String(autoLoad));
-    localStorage.setItem(SETTINGS_KEYS.SIMPLE_INTERFACE,   String(simpleInterface));
     localStorage.setItem(SETTINGS_KEYS.DARK_THEME,         String(darkTheme));
     localStorage.setItem(SETTINGS_KEYS.STORE_FILES_IN_DB,  String(storeFilesInDb));
     localStorage.setItem(SETTINGS_KEYS.LANGUAGE,           language);
@@ -201,7 +173,6 @@ async function saveSettings() {
     if (hasDb && typeof saveDbSettings === "function") {
         const dbS = {
             autoLoadLastDb:  String(autoLoad),
-            simpleInterface: String(simpleInterface),
             darkTheme:       String(darkTheme),
             storeFilesInDb:  String(storeFilesInDb),
             language
@@ -212,7 +183,6 @@ async function saveSettings() {
             Object.entries(dbS).forEach(([k,v]) => appSettingSet(k, v));
     }
 
-    applySimpleInterface(simpleInterface);
     applyDarkTheme(darkTheme);
 
     if (language !== prevLang) {
