@@ -669,7 +669,7 @@ function populateFieldDropdown(tableSelect) {
     fieldSelect.appendChild(exprSep);
     const exprOption = document.createElement("option");
     exprOption.value = "__expr__";
-    exprOption.textContent = "⚡ " + t("computedFieldOption");
+    exprOption.textContent = "⭟" + t("computedFieldOption");
     fieldSelect.appendChild(exprOption);
 
     const startOption = document.createElement("option");
