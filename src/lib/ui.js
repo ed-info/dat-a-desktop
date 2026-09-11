@@ -97,8 +97,10 @@ function makeDataModalsResizable() {
             const startHeight = modal.offsetHeight;
             grip.setPointerCapture(event.pointerId);
             const move = e => {
-                modal.style.width = `${Math.max(420, startWidth + e.clientX - startX)}px`;
-                modal.style.height = `${Math.max(280, startHeight + e.clientY - startY)}px`;
+                const maxW = window.innerWidth - modal.offsetLeft;
+                const maxH = window.innerHeight - modal.offsetTop;
+                modal.style.width = `${Math.max(420, Math.min(startWidth + e.clientX - startX, maxW))}px`;
+                modal.style.height = `${Math.max(280, Math.min(startHeight + e.clientY - startY, maxH))}px`;
             };
             const stop = () => {
                 grip.removeEventListener("pointermove", move);

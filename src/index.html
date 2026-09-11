@@ -24,6 +24,7 @@
     <script src="lib/designer.js"></script>
     <script src="lib/data.js"></script> 
     <script src="lib/relations.js"></script>
+    <script src="lib/icons.js"></script>
     <script src="lib/i18n.js"></script>
     <script src="lib/settings.js"></script>  
 	<script src="lib/core.js"></script>
@@ -1213,7 +1214,7 @@
                     <!-- Search -->
                     <div style="display:flex; align-items:center; gap:6px;">
                         <label for="dataSearchInput" style="font-size:14px;white-space:nowrap;" lang-i18n="searchLabel">🔎 Search</label>
-                        <input type="text" id="dataSearchInput"  lang-i18n="dataSearchInput" placeholder="🔍..."
+                        <input type="text" id="dataSearchInput"  lang-i18n="dataSearchInput" placeholder="По всіх полях..."
                                style="flex:1; padding:4px 6px; font-size:14px; min-width:0;"
                                oninput="applyDataSearch()">
                     </div>
@@ -1631,7 +1632,7 @@
        
                 <div style="display:flex; align-items:center; gap:10px; justify-content:space-between;">
                     <span lang-i18n="languageSelect">Мова інтерфейсу:</span>
-                    <select id="languageSelect" class="language-select" style="padding:5px; border-radius:4px; border:1px solid #ccc;">
+                    <select id="languageSelect" style="display:none;">
                         <option value="uk">🇺🇦&#160;Українська</option>
                         <option value="en">🇬🇧&#160;English</option>
                         <option value="pl">🇵🇱&#160;Polski</option>
@@ -1640,6 +1641,14 @@
                         <option value="es">🇪🇸&#160;Español</option>
                         <option value="it">🇮🇹&#160;Italiano</option>
                     </select>
+                    <div class="lang-select" id="langSelect">
+                        <button type="button" class="lang-select-trigger" id="langSelectTrigger">
+                            <span class="flag-icon" id="langSelectFlag"></span>
+                            <span id="langSelectLabel">Українська</span>
+                            <span class="lang-carets">&#9660;</span>
+                        </button>
+                        <div class="lang-select-menu" id="langSelectMenu"></div>
+                    </div>
                 </div>
 
                 <button id="clearStorageBtn" lang-i18n="clearStorageBtn" style="padding:8px; background:#f00000; border:1px solid #ccc; border-radius:5px; cursor:pointer; text-align:center;">

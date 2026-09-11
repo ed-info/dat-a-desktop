@@ -40,6 +40,66 @@ function detectBrowserTheme() {
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
 
+// ── Кастомний селектор мови з SVG-прапорами ──
+function _langLabelFromOption(option) {
+    if (!option) return '';
+    return option.text.replace(/^\s*(?:(?:\p{Extended_Pictographic}|[\u2600-\u27BF])(?:\uFE0F)?|\p{Regional_Indicator}{2})\s*/u, '').trim();
+}
+
+function buildLangSelectMenu() {
+    const sel = document.getElementById('languageSelect');
+    const menu = document.getElementById('langSelectMenu');
+    if (!sel || !menu || menu.childElementCount) return;
+    [...sel.options].forEach(opt => {
+        const label = _langLabelFromOption(opt);
+        const flagHtml = (typeof getFlagSvg === 'function') ? getFlagSvg(opt.value) : '';
+        const optEl = document.createElement('div');
+        optEl.className = 'lang-select-option';
+        optEl.setAttribute('data-lang', opt.value);
+        optEl.innerHTML = `${flagHtml}<span>${label}</span>`;
+        optEl.addEventListener('click', () => {
+            sel.value = opt.value;
+            updateLangSelectUI();
+            toggleLangSelectMenu(false);
+        });
+        menu.appendChild(optEl);
+    });
+}
+
+function toggleLangSelectMenu(force) {
+    const menu = document.getElementById('langSelectMenu');
+    if (!menu) return;
+    const open = force === undefined ? !menu.classList.contains('open') : !!force;
+    menu.classList.toggle('open', open);
+}
+
+function updateLangSelectUI() {
+    const sel = document.getElementById('languageSelect');
+    if (!sel) return;
+    const lang = sel.value || 'uk';
+    const label = _langLabelFromOption(sel.options[sel.selectedIndex]);
+    const flag = document.getElementById('langSelectFlag');
+    const lbl = document.getElementById('langSelectLabel');
+    if (flag) flag.innerHTML = (typeof getFlagSvg === 'function') ? getFlagSvg(lang) : '';
+    if (lbl) lbl.textContent = label || lang;
+    document.querySelectorAll('#langSelectMenu .lang-select-option').forEach(o => {
+        o.classList.toggle('selected', o.getAttribute('data-lang') === lang);
+    });
+}
+
+function initLangSelectUI() {
+    const trigger = document.getElementById('langSelectTrigger');
+    if (!trigger || trigger.dataset.inited === '1') return;
+    trigger.dataset.inited = '1';
+    buildLangSelectMenu();
+    updateLangSelectUI();
+    trigger.addEventListener('click', e => {
+        e.stopPropagation();
+        toggleLangSelectMenu();
+    });
+    document.addEventListener('click', () => toggleLangSelectMenu(false));
+}
+
 // Завантаження налаштувань при старті 
 function loadSettings() {
     document.getElementById('autoLoadLastDbCheckbox').checked =
@@ -63,6 +123,8 @@ function loadSettings() {
         localStorage.setItem(SETTINGS_KEYS.LANGUAGE, lang);
     }
     document.getElementById('languageSelect').value = lang;
+    initLangSelectUI();
+    updateLangSelectUI();
 }
 
 //  Застосування темної теми 
@@ -106,6 +168,7 @@ function applyAppSettingsToUI(s) {
         const sel = document.getElementById('languageSelect');
         if (sel) sel.value = s.language;
         localStorage.setItem(SETTINGS_KEYS.LANGUAGE, s.language);
+        updateLangSelectUI();
         if (s.language !== prevLang && typeof setLang === 'function') setLang(s.language);
     }
 
@@ -142,6 +205,7 @@ function openSettingsModal() {
         bool('storeFilesInDb', SETTINGS_KEYS.STORE_FILES_IN_DB);
     document.getElementById('languageSelect').value =
         str('language', SETTINGS_KEYS.LANGUAGE, 'uk');
+    updateLangSelectUI();
 
     // Показати/приховати кнопку блокування залежно від наявності бази
     const lockBtn = document.getElementById('openLockModalBtn');

@@ -8,31 +8,54 @@
     line-height: 1;
 }
 .ui-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    margin: 0;
+    text-align: left;
+    vertical-align: middle;
+    line-height: 1;
+    flex-shrink: 0;
+}
+.ui-icon svg {
     display: inline-block;
     width: 1.2em;
-    margin-right: 0.5em;
-    text-align: left;
-    font-family: 'Noto Color Emoji', 'Segoe UI Emoji', sans-serif;
+    height: 1.2em;
+    max-width: none;
+    vertical-align: -0.15em;
+}
+.flag-icon {
+    display: inline-block;
+    width: 1.1em;
+    height: 1.1em;
+    border-radius: 50%;
+    overflow: hidden;
+    vertical-align: -0.25em;
+    flex-shrink: 0;
+    background: #eee;
+}
+.flag-icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
 }
 .icon-header {
     text-align: center !important;
 }
 .icon-header .ui-icon {
     width: auto;
-    margin-right: 0;
     text-align: center;
+}
+.scissors-header-cell .ui-icon {
+    margin: 0;
 }
 #schemaHead th.icon-header {
     text-align: center !important;
-    font-family: 'Noto Color Emoji', 'Segoe UI Emoji', sans-serif;
-}
-#schemaHead th.icon-header .ui-icon {
-    display: none;
 }
 #schemaHead th.icon-header {
     width: 34px !important;
     min-width: 34px;
-    text-indent: -18px;
 }
 #schemaTable th:nth-child(4),
 #schemaTable td[data-role="fk"] {
@@ -76,21 +99,79 @@
 #schemaTable td[data-role="ref-table"] {
     width: 130px;
 }
-#schemaHead th.icon-header:nth-child(1)::before { content: "🔑"; }
-#schemaHead th.icon-header:nth-child(4)::before { content: "📌"; }
-#schemaHead th.icon-header:nth-child(7)::before { content: "🛟"; }
+#schemaHead th.icon-header {
+    width: 34px !important;
+    min-width: 34px;
+}
 .language-select {
     font-family: 'Noto Color Emoji', Arial, sans-serif;
 }
-body.dark-theme .language-select {
-    background-color: var(--dt-input-bg) !important;
-    color: var(--dt-text) !important;
-    border-color: var(--dt-border-hi) !important;
+/* ── Кастомний селектор мови з SVG-прапорами ── */
+.lang-select {
+    position: relative;
+    display: inline-block;
+    min-width: 150px;
+    user-select: none;
 }
-body.dark-theme .language-select option {
-    background-color: var(--dt-input-bg);
-    color: var(--dt-text);
+.lang-select-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: inherit;
+    color: #333;
+    text-align: left;
 }
+.lang-select-trigger .lang-carets {
+    margin-left: auto;
+    font-size: 12px;
+    color: #888;
+}
+.lang-select-menu {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    z-index: 10050;
+    display: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+.lang-select-menu.open { display: block; }
+/* Щоб меню вибору мови не обрізалося нижньою межею модалки */
+#settingsModal > .modal-box { overflow: visible; }
+.lang-select-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+}
+.lang-select-option:hover { background: #f0f0f0; }
+.lang-select-option.selected { background: #e3f2fd; }
+body.dark-theme .lang-select-trigger {
+    background-color: var(--dt-input-bg, #2d2d2d);
+    color: var(--dt-text, #fff);
+    border-color: var(--dt-border-hi, #666);
+}
+body.dark-theme .lang-select-menu {
+    background-color: var(--dt-input-bg, #2d2d2d);
+    border-color: var(--dt-border-hi, #666);
+}
+body.dark-theme .lang-select-option { color: var(--dt-text, #fff); }
+body.dark-theme .lang-select-option:hover { background: #3a3a3a; }
+body.dark-theme .lang-select-option.selected { background: #2c4a6e; }
 body.dark-theme #languageSelect {
     -webkit-appearance: none;
     appearance: none;
@@ -104,14 +185,23 @@ body.dark-theme #languageSelect {
     padding-right: 28px !important;
 }
 .scissors-header-icon {
-    display: inline-block;
-    font-family: Arial, "DejaVu Sans", sans-serif;
-    font-size: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     line-height: 1;
+    color: inherit;
+}
+.scissors-header-icon .ui-icon,
+.scissors-header-icon .ui-icon svg {
+    width: 16px;
+    height: 16px;
 }
 .scissors-header-cell {
     text-align: center;
     vertical-align: middle;
+}
+#queryModal .query-table th.scissors-header-cell {
+    text-align: center;
 }
 .button-settings-box {
     width: min(700px, calc(100vw - 24px)) !important;
@@ -160,11 +250,9 @@ body.dark-theme #languageSelect {
 .wide-btn .ui-icon,
 .slim-btn .ui-icon,
 .mid-btn .ui-icon {
-    width: 1.2em;
-    margin-right: 0;
+    width: auto;
+    margin: 0;
     text-align: center;
-    position: relative;
-    left: -0.55em;
 }
 
 body {

@@ -607,6 +607,9 @@ function createTable() {
         schemaBody.closest("table").querySelector("thead tr").appendChild(th);
     }
 
+    // Перебудовуємо заголовок так само, як при редагуванні (включно з колонкою-ножицями)
+    updateSchemaTableHeader(false);
+
     // Встановлюємо назву таблиці за замовчуванням
     document.getElementById("tableName").value = t("defaultTableName");
 

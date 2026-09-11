@@ -23,11 +23,19 @@ function translatedText(el, text) {
 }
 
 function applyTextTranslation(el, text) {
-    if (/<[a-z][^>]*>/i.test(text) && !text.match(LEADING_ICON_RE)) {
-        el.innerHTML = text;
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+        el.placeholder = text;
         return;
     }
-    const existingIcon = el.querySelector(":scope > .ui-icon")?.textContent || "";
+    if (/<[a-z][^>]*>/i.test(text) && !text.match(LEADING_ICON_RE)) {
+        el.innerHTML = text;
+        if (typeof setIconContent === 'function') {
+            el.querySelectorAll('.ui-icon').forEach(uc => setIconContent(uc, uc.textContent.trim()));
+        }
+        return;
+    }
+    const existingIcon = (typeof getExistingIcon === 'function')
+        ? getExistingIcon(el) : (el.querySelector(":scope > .ui-icon")?.textContent || "");
     const textNodes = [...el.childNodes].filter(node => node.nodeType === Node.TEXT_NODE);
     if (!textNodes.length) return;
     let value = translatedText(el, text);
@@ -37,7 +45,8 @@ function applyTextTranslation(el, text) {
     if (icon) {
         const iconEl = document.createElement("span");
         iconEl.className = "ui-icon";
-        iconEl.textContent = icon[1];
+        if (typeof setIconContent === 'function') setIconContent(iconEl, icon[1]);
+        else iconEl.textContent = icon[1];
         textNodes[0].replaceWith(iconEl, document.createTextNode(` ${value.slice(icon[0].length)}`));
     } else {
         textNodes[0].nodeValue = value;
@@ -56,7 +65,8 @@ function wrapButtonIcon(button) {
             const match = nestedText.nodeValue.match(LEADING_ICON_RE);
             const icon = document.createElement("span");
             icon.className = "ui-icon";
-            icon.textContent = match[1];
+            if (typeof setIconContent === 'function') setIconContent(icon, match[1]);
+            else icon.textContent = match[1];
             nestedText.replaceWith(icon, document.createTextNode(nestedText.nodeValue.slice(match[0].length)));
         }
     }
@@ -68,7 +78,8 @@ function wrapButtonIcon(button) {
     const match = textNode.nodeValue.match(LEADING_ICON_RE);
     const icon = document.createElement("span");
     icon.className = "ui-icon";
-    icon.textContent = match[1];
+    if (typeof setIconContent === 'function') setIconContent(icon, match[1]);
+    else icon.textContent = match[1];
     textNode.replaceWith(icon, document.createTextNode(textNode.nodeValue.slice(match[0].length)));
 }
 

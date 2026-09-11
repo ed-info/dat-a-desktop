@@ -1209,8 +1209,15 @@ function _toggleEditTableFullscreen() {
         // Зберігаємо поточні inline-стилі box
         box._fsOrigStyle = box.getAttribute('style') || '';
 
-        // Розтягуємо box на весь overlay
+        // Розтягуємо box на весь overlay.
+        // Важливо: скидаємо position/left/top (їх міг виставити makeModalsDraggable
+        // при перетягуванні), інакше box зі зсувом вийде за межі вікна програми.
         Object.assign(box.style, {
+            position:     'relative',
+            left:         '0',
+            top:          '0',
+            right:        '0',
+            bottom:       '0',
             width:        '100%',
             height:       '100%',
             maxWidth:     '100%',
@@ -1218,7 +1225,8 @@ function _toggleEditTableFullscreen() {
             borderRadius: '0',
             margin:       '0',
             flex:         '1 1 auto',
-            boxSizing:    'border-box'
+            boxSizing:    'border-box',
+            transform:    'none'
         });
 
         modal.dataset.fullscreen = '1';
@@ -1358,6 +1366,7 @@ function _setupScrollIndicators() {
             } else {
                 hIndicator.textContent = "";
             }
+            if (typeof convertEmojiInContainer === "function") convertEmojiInContainer(hIndicator);
         };
 
         hScrollContainer.addEventListener("scroll", updateH);
@@ -1407,6 +1416,7 @@ function _setupScrollIndicators() {
                 down.textContent = "▼";
                 vIndicator.appendChild(down);
             }
+            if (typeof convertEmojiInContainer === "function") convertEmojiInContainer(vIndicator);
         };
 
         vScrollContainer.addEventListener("scroll", updateV);
