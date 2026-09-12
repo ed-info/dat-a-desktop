@@ -51,9 +51,15 @@ function makeModalsDraggable() {
             modal.style.top = `${startTop}px`;
             modal.style.margin = "0";
             modal.style.transform = "none";
-            modal.setPointerCapture(event.pointerId);
+
+            let dragging = false;
 
             const move = e => {
+                if (!dragging) {
+                    if (Math.hypot(e.clientX - startX, e.clientY - startY) < 4) return;
+                    dragging = true;
+                    try { modal.setPointerCapture(e.pointerId); } catch (_) {}
+                }
                 modal.style.left = `${startLeft + e.clientX - startX}px`;
                 modal.style.top = `${startTop + e.clientY - startY}px`;
             };
