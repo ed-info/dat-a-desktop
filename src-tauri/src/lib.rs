@@ -23,6 +23,8 @@ fn open_help_window(app: tauri::AppHandle) -> Result<(), String> {
 pub fn run() {
     #[cfg(target_os = "linux")]
     std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
+    #[cfg(target_os = "linux")]
+    std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())

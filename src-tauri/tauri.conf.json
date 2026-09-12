@@ -1,21 +1,22 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "dat-a-desktop",
-  "version": "0.1.0",
+  "version": "0.1.9",
   "identifier": "com.mx-linux.dat-a-desktop",
   "build": {
     "frontendDist": "../src"
   },
   "app": {
     "withGlobalTauri": true,
-    "windows": [
+"windows": [
       {
         "title": "dat.A: power of data",
         "width": 800,
         "height": 600,
         "minWidth": 980,
         "minHeight": 640,
-        "center": true
+        "center": true,
+        "devtools": true
       }
     ],
     "security": {
