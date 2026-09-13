@@ -4,19 +4,30 @@ use sqlite::AppState;
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 
 #[tauri::command]
-fn open_help_window(app: tauri::AppHandle) -> Result<(), String> {
+async fn open_help_window(app: tauri::AppHandle) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("help") {
         window.show().map_err(|e| e.to_string())?;
         window.set_focus().map_err(|e| e.to_string())?;
         return Ok(());
     }
 
-    WebviewWindowBuilder::new(&app, "help", WebviewUrl::App("help.html".into()))
-        .title("dat.A — Підказка")
-        .inner_size(980.0, 720.0)
-        .build()
-        .map(|_| ())
-        .map_err(|e| e.to_string())
+    tauri::async_runtime::spawn(async move {
+        let app_for_main = app.clone();
+        let _ = app.run_on_main_thread(move || {
+            if WebviewWindowBuilder::new(&app_for_main, "help", WebviewUrl::App("help.html".into()))
+                .title("dat.A — Підказка")
+                .inner_size(980.0, 720.0)
+                .build()
+                .is_ok()
+            {
+                if let Some(w) = app_for_main.get_webview_window("help") {
+                    let _ = w.show();
+                }
+            }
+        });
+    });
+
+    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

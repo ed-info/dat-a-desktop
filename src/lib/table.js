@@ -18,7 +18,9 @@
                 li.textContent = table.name;
             }
 
-            li.addEventListener("click", () => {
+            li.addEventListener("mousedown", (e) => {
+                if (e.button !== 0) return;
+                e.preventDefault();
                 [...listEl.children].forEach(el => el.style.background = "");
                 const isDark = document.body.classList.contains("dark-theme");
                 li.style.background = isDark ? "#242d43" : "#d0e0ff";

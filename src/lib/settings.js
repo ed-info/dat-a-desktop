@@ -57,7 +57,9 @@ function buildLangSelectMenu() {
         optEl.className = 'lang-select-option';
         optEl.setAttribute('data-lang', opt.value);
         optEl.innerHTML = `${flagHtml}<span>${label}</span>`;
-        optEl.addEventListener('click', () => {
+        optEl.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            e.preventDefault();
             sel.value = opt.value;
             updateLangSelectUI();
             toggleLangSelectMenu(false);
