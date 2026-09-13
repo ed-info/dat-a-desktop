@@ -1325,6 +1325,60 @@
     </div>
 </div>
 
+<div id="fkWarningModal" style="
+    display:none; 
+    position:fixed; 
+    top:0; left:0; 
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.4);
+    z-index:10023;
+">
+    <div class="alert-modal-content" style="         
+        width:460px; 
+        position:absolute; 
+        top:50%; left:50%; 
+        transform:translate(-50%,-50%);
+        display:flex; 
+        flex-direction:column;
+        gap:16px;
+        padding:18px;
+        box-sizing:border-box;
+    ">
+        <div id="fkWarningMsg" style="font-size:16px; line-height:1.45;"></div>
+        <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" onclick="fkWarningChoice(true)" id="fkWarningCascadeBtn" style="padding:8px 14px; cursor:pointer;"></button>
+            <button type="button" onclick="fkWarningChoice(false)" id="fkWarningCancelBtn" style="padding:8px 14px; cursor:pointer;"></button>
+        </div>
+    </div>
+</div>
+
+<div id="fkConfirmModal" style="
+    display:none; 
+    position:fixed; 
+    top:0; left:0; 
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.4);
+    z-index:10024;
+">
+    <div class="alert-modal-content" style="         
+        width:460px; 
+        position:absolute; 
+        top:50%; left:50%; 
+        transform:translate(-50%,-50%);
+        display:flex; 
+        flex-direction:column;
+        gap:16px;
+        padding:18px;
+        box-sizing:border-box;
+    ">
+        <div id="fkConfirmMsg" style="font-size:16px; line-height:1.45;"></div>
+        <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" onclick="fkConfirmChoice(true)" id="fkConfirmDeleteBtn" style="padding:8px 14px; cursor:pointer;"></button>
+            <button type="button" onclick="fkConfirmChoice(false)" id="fkConfirmCancelBtn" style="padding:8px 14px; cursor:pointer;"></button>
+        </div>
+    </div>
+</div>
+
 <div id="pkModal" style="
     display:none; 
     position:fixed; 

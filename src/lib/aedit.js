@@ -1611,137 +1611,167 @@ function deleteSelectedRow(afterDeleteCallback) {
 
     const pkDisplayValue = pkDisplayValues.join(", ");
 
-    // Викликаємо модальне підтвердження
-    confirmDeleteRow(pkDisplayValue, async (confirmed) => {
-        if (!confirmed) return;
+    // Отримуємо оригінальну таблицю з database
+    const originalTable = database.tables.find(t => t.name === currentEditTable.name);
+    if (!originalTable) {
+        Message(t("aeditTableNotFound"));
+        return;
+    }
 
-        // Отримуємо оригінальну таблицю з database
-        const originalTable = database.tables.find(t => t.name === currentEditTable.name);
-        if (!originalTable) {
-            Message(t("aeditTableNotFound"));
-            return;
-        }
-
-        // Індекси PK у схемі оригінальної таблиці (не відфільтрованої currentEditTable)
-        const pkColsOrig = pkCols.map(pk => ({
-            title: pk.title,
-            // Індекс у currentEditTable.schema (для читання з DOM-комірок)
-            displayIndex: (() => {
-                for (let j = 0; j < currentEditTable.schema.length; j++) {
-                    if (currentEditTable.schema[j].title === pk.title) return j;
-                }
-                return -1;
-            })(),
-            // Індекс у originalTable.schema (для читання з originalTable.data)
-            origIndex: (() => {
-                for (let j = 0; j < originalTable.schema.length; j++) {
-                    if (originalTable.schema[j].title === pk.title) return j;
-                }
-                return -1;
-            })()
-        }));
-
-        // Знаходимо індекс рядка в оригінальних даних
-        let rowIndexToDelete = -1;
-
-        // Визначаємо tbody: спочатку з currentEditTable._tbody (таблиці форми),
-        // потім fallback на стандартний editBody
-        const selectedRow = selectedCell.parentElement;
-        const activeTbody = currentEditTable._tbody ||
-            document.getElementById("editBody") ||
-            selectedRow.closest("tbody");
-        const rowData = activeTbody
-            ? Array.from(activeTbody.querySelectorAll("tr")).indexOf(selectedRow)
-            : -1;
-
-        // Шлях 1: _pkSnapshot
-        if (rowData !== -1 && currentEditTable.data[rowData]?._pkSnapshot) {
-            const snapshot = currentEditTable.data[rowData]._pkSnapshot;
-            for (let i = 0; i < originalTable.data.length; i++) {
-                let matches = true;
-                for (let pk of pkColsOrig) {
-                    if (pk.origIndex === -1) { matches = false; break; }
-                    const origValue = String(originalTable.data[i][pk.origIndex] ?? "");
-                    const snapValue = String(snapshot[pk.title] ?? "");
-                    if (origValue !== snapValue) { matches = false; break; }
-                }
-                if (matches) { rowIndexToDelete = i; break; }
+    // Індекси PK у схемі оригінальної таблиці (не відфільтрованої currentEditTable)
+    const pkColsOrig = pkCols.map(pk => ({
+        title: pk.title,
+        // Індекс у currentEditTable.schema (для читання з DOM-комірок)
+        displayIndex: (() => {
+            for (let j = 0; j < currentEditTable.schema.length; j++) {
+                if (currentEditTable.schema[j].title === pk.title) return j;
             }
-        }
-
-        // Шлях 2: порядок рядків у DOM збігається з порядком у originalTable.data,
-        // тому rowData є прямим індексом рядка для видалення.
-        // Це працює і коли PK-поле приховане у таблиці форми.
-        if (rowIndexToDelete === -1 && rowData !== -1 && rowData < originalTable.data.length) {
-            rowIndexToDelete = rowData;
-        }
-
-        // Шлях 3: порівнюємо лише за DOM-комірками (лише якщо PK відображається)
-        if (rowIndexToDelete === -1) {
-            for (let i = 0; i < originalTable.data.length; i++) {
-                let matches = true;
-                for (let pk of pkColsOrig) {
-                    if (pk.displayIndex === -1 || pk.origIndex === -1) { matches = false; break; }
-                    const currentValue = cells[pk.displayIndex]?.innerText?.trim() ?? "";
-                    const originalValue = String(originalTable.data[i][pk.origIndex] ?? "");
-                    if (currentValue !== originalValue) { matches = false; break; }
-                }
-                if (matches) { rowIndexToDelete = i; break; }
+            return -1;
+        })(),
+        // Індекс у originalTable.schema (для читання з originalTable.data)
+        origIndex: (() => {
+            for (let j = 0; j < originalTable.schema.length; j++) {
+                if (originalTable.schema[j].title === pk.title) return j;
             }
+            return -1;
+        })()
+    }));
+
+    // Знаходимо індекс рядка в оригінальних даних
+    let rowIndexToDelete = -1;
+
+    // Визначаємо tbody: спочатку з currentEditTable._tbody (таблиці форми),
+    // потім fallback на стандартний editBody
+    const selectedRow = selectedCell.parentElement;
+    const activeTbody = currentEditTable._tbody ||
+        document.getElementById("editBody") ||
+        selectedRow.closest("tbody");
+    const rowData = activeTbody
+        ? Array.from(activeTbody.querySelectorAll("tr")).indexOf(selectedRow)
+        : -1;
+
+    // Шлях 1: _pkSnapshot
+    if (rowData !== -1 && currentEditTable.data[rowData]?._pkSnapshot) {
+        const snapshot = currentEditTable.data[rowData]._pkSnapshot;
+        for (let i = 0; i < originalTable.data.length; i++) {
+            let matches = true;
+            for (let pk of pkColsOrig) {
+                if (pk.origIndex === -1) { matches = false; break; }
+                const origValue = String(originalTable.data[i][pk.origIndex] ?? "");
+                const snapValue = String(snapshot[pk.title] ?? "");
+                if (origValue !== snapValue) { matches = false; break; }
+            }
+            if (matches) { rowIndexToDelete = i; break; }
         }
+    }
 
-        if (rowIndexToDelete === -1) {
-            Message(t("aeditRowNotFound"));
-            return;
+    // Шлях 2: порядок рядків у DOM збігається з порядком у originalTable.data,
+    // тому rowData є прямим індексом рядка для видалення.
+    // Це працює і коли PK-поле приховане у таблиці форми.
+    if (rowIndexToDelete === -1 && rowData !== -1 && rowData < originalTable.data.length) {
+        rowIndexToDelete = rowData;
+    }
+
+    // Шлях 3: порівнюємо лише за DOM-комірками (лише якщо PK відображається)
+    if (rowIndexToDelete === -1) {
+        for (let i = 0; i < originalTable.data.length; i++) {
+            let matches = true;
+            for (let pk of pkColsOrig) {
+                if (pk.displayIndex === -1 || pk.origIndex === -1) { matches = false; break; }
+                const currentValue = cells[pk.displayIndex]?.innerText?.trim() ?? "";
+                const originalValue = String(originalTable.data[i][pk.origIndex] ?? "");
+                if (currentValue !== originalValue) { matches = false; break; }
+            }
+            if (matches) { rowIndexToDelete = i; break; }
         }
+    }
 
-        // Формуємо SQL WHERE умову
-        const whereClauses = pkColsOrig.map(pk => {
-            const value = String(originalTable.data[rowIndexToDelete][pk.origIndex] ?? "");
-            return `"${pk.title}" = '${value.replace(/'/g, "''")}'`;
-        });
+    if (rowIndexToDelete === -1) {
+        Message(t("aeditRowNotFound"));
+        return;
+    }
 
-        const sql = `DELETE FROM "${currentEditTable.name}" WHERE ${whereClauses.join(" AND ")};`;
+    // Формуємо SQL WHERE умову
+    const whereClauses = pkColsOrig.map(pk => {
+        const value = String(originalTable.data[rowIndexToDelete][pk.origIndex] ?? "");
+        return `"${pk.title}" = '${value.replace(/'/g, "''")}'`;
+    });
 
+    const sql = `DELETE FROM "${currentEditTable.name}" WHERE ${whereClauses.join(" AND ")};`;
+
+    // Перевірка зовнішніх ключів: збираємо залежні записи у інших таблицях
+    const fkPlan = buildFkCascadePlan(originalTable, rowIndexToDelete);
+    const fkTotal = fkPlan.total;
+
+    const runDeletion = async () => {
         try {
-            await dba.db.run(sql);
+            // Каскадне видалення пов'язаних записів (спочатку глибші залежності)
+            if (fkTotal > 0) {
+                await dba.db.run("BEGIN");
+                try {
+                    for (const tName of fkPlan.order) {
+                        const tb = database.tables.find(t => t.name === tName);
+                        if (!tb) continue;
+                        const indexes = [...fkPlan.byTable.get(tName)].sort((a, b) => b - a);
+                        for (const ri of indexes) {
+                            const w = _rowWhereSQL(tb, ri);
+                            if (w) await dba.db.run(`DELETE FROM "${tb.name}" WHERE ${w};`);
+                        }
+                    }
+                    await dba.db.run(sql);
+                    await dba.db.run("COMMIT");
+                } catch (e2) {
+                    try { await dba.db.run("ROLLBACK"); } catch (_) {}
+                    Message(t("aeditDeleteError", e2.message));
+                    return;
+                }
+                // Видаляємо залежні рядки з пам'яті
+                for (const tName of fkPlan.order) {
+                    const tb = database.tables.find(t => t.name === tName);
+                    if (!tb) continue;
+                    const indexes = [...fkPlan.byTable.get(tName)].sort((a, b) => b - a);
+                    indexes.forEach(i => tb.data.splice(i, 1));
+                }
+            } else {
+                await dba.db.run(sql);
+            }
 
             // Негайно видаляємо рядок з DOM
             const rowEl = selectedCell.parentElement;
             rowEl.remove();
             selectedCell = null;
-            
+
             // Видаляємо з оригінальної таблиці
             originalTable.data.splice(rowIndexToDelete, 1);
-            
+
             // Оновлюємо поточну таблицю для відображення
             const selectedFields = window._currentTableSelectedFields?.[currentEditTable.name] || [];
-            
+
             if (selectedFields.length > 0) {
-                const fieldIndices = selectedFields.map(field => 
+                const fieldIndices = selectedFields.map(field =>
                     originalTable.schema.findIndex(col => col.title === field)
                 ).filter(idx => idx !== -1);
-                
-                currentEditTable.data = originalTable.data.map(row => 
+
+                currentEditTable.data = originalTable.data.map(row =>
                     fieldIndices.map(idx => row[idx])
                 );
             } else {
                 currentEditTable.data = [...originalTable.data];
             }
-            
+
             // Оновлюємо схему, якщо потрібно
             if (selectedFields.length > 0) {
-                currentEditTable.schema = originalTable.schema.filter(col => 
+                currentEditTable.schema = originalTable.schema.filter(col =>
                     selectedFields.includes(col.title)
                 );
             } else {
                 currentEditTable.schema = [...originalTable.schema];
             }
-            
+
             saveDatabase();
-			if (typeof afterDeleteCallback === 'function') afterDeleteCallback();
+            if (typeof afterDeleteCallback === 'function') afterDeleteCallback();
             Message(t("aeditDeleted"));
-            
+
             // Оновлюємо відображення форми, зберігаючи поточну таблицю
             if (currentPreviewForm) {
                 // Зберігаємо поточну таблицю перед оновленням
@@ -1763,7 +1793,123 @@ function deleteSelectedRow(afterDeleteCallback) {
         } catch (e) {
             Message(t("aeditDeleteError", e.message));
         }
-    });
+    };
+
+    // Если є пов'язані записи — попереджаємо та питаємо про каскадне видалення
+    if (fkTotal > 0) {
+        _fkDeleteState = { total: fkTotal, execute: runDeletion };
+        showFkWarningForDelete();
+    } else {
+        confirmDeleteRow(pkDisplayValue, async (confirmed) => {
+            if (confirmed) await runDeletion();
+        });
+    }
+}
+
+// ===== Каскадне видалення із перевіркою зовнішніх ключів =====
+let _fkDeleteState = null;
+
+function _escHtml(s) {
+    return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function _rowWhereSQL(tableObj, rowIndex) {
+    const row = tableObj.data[rowIndex];
+    if (!row) return "";
+    let cols = tableObj.schema.filter(c => c.primaryKey);
+    if (cols.length === 0) cols = tableObj.schema;
+    return cols.map(c => {
+        const idx = tableObj.schema.indexOf(c);
+        const v = row[idx];
+        return `"${c.title}" = '${String(v ?? "").replace(/'/g, "''")}'`;
+    }).join(" AND ");
+}
+
+function _rowIdentMap(tableObj, rowIndex) {
+    const m = {};
+    const row = tableObj.data[rowIndex];
+    if (!row) return m;
+    tableObj.schema.forEach((c, idx) => { m[c.title] = row[idx]; });
+    return m;
+}
+
+function buildFkCascadePlan(rootTableObj, rootRowIndex) {
+    const byTable = new Map();
+    const depthMap = new Map();
+    const seen = new Set();
+
+    function walk(tableObj, rowIndex, depth) {
+        const key = tableObj.name + "|" + rowIndex;
+        if (seen.has(key)) return;
+        seen.add(key);
+        const identifiers = _rowIdentMap(tableObj, rowIndex);
+        database.tables.forEach(child => {
+            if (child.name === tableObj.name) return;
+            child.schema.forEach((col, colIdx) => {
+                if (!(col.foreignKey && col.refTable === tableObj.name)) return;
+                const refVal = identifiers[col.refField];
+                if (refVal === undefined || refVal === null) return;
+                child.data.forEach((row, rowIdx) => {
+                    const fv = row[colIdx];
+                    if (fv === undefined || fv === null) return;
+                    if (child.name === rootTableObj.name && rowIdx === rootRowIndex) return;
+                    if (String(fv) === String(refVal)) {
+                        if (!byTable.has(child.name)) byTable.set(child.name, new Set());
+                        byTable.get(child.name).add(rowIdx);
+                        depthMap.set(child.name, Math.max(depthMap.get(child.name) ?? 0, depth));
+                        walk(child, rowIdx, depth + 1);
+                    }
+                });
+            });
+        });
+    }
+
+    walk(rootTableObj, rootRowIndex, 1);
+
+    let total = 0;
+    byTable.forEach(s => { total += s.size; });
+    const order = [...byTable.keys()].sort((a, b) => (depthMap.get(b) ?? 0) - (depthMap.get(a) ?? 0));
+    return { total, byTable, order };
+}
+
+function showFkWarningForDelete() {
+    const st = _fkDeleteState;
+    if (!st) return;
+    const msgEl = document.getElementById("fkWarningMsg");
+    if (msgEl) {
+        msgEl.innerHTML =
+            "<div>" + _escHtml(t("fkWarningMsg")) + "</div>" +
+            "<div style='margin-top:6px;font-weight:bold;'>" + _escHtml(t("fkRelatedCount", { count: st.total })) + "</div>";
+    }
+    const btn = document.getElementById("fkWarningCascadeBtn");
+    if (btn) btn.textContent = t("fkDeleteAll");
+    const cn = document.getElementById("fkWarningCancelBtn");
+    if (cn) cn.textContent = t("fkCancel");
+    document.getElementById("fkWarningModal").style.display = "block";
+}
+
+function fkWarningChoice(cascade) {
+    document.getElementById("fkWarningModal").style.display = "none";
+    if (!cascade || !_fkDeleteState) { _fkDeleteState = null; return; }
+    const st = _fkDeleteState;
+    const msgEl = document.getElementById("fkConfirmMsg");
+    if (msgEl) {
+        msgEl.innerHTML =
+            "<div>" + _escHtml(t("fkConfirmMsg1", { count: st.total })) + "</div>" +
+            "<div style='margin-top:6px;'>" + _escHtml(t("fkConfirmMsg2")) + "</div>";
+    }
+    const db = document.getElementById("fkConfirmDeleteBtn");
+    if (db) db.textContent = t("fkDelete");
+    const cn = document.getElementById("fkConfirmCancelBtn");
+    if (cn) cn.textContent = t("fkCancel");
+    document.getElementById("fkConfirmModal").style.display = "block";
+}
+
+function fkConfirmChoice(confirmed) {
+    document.getElementById("fkConfirmModal").style.display = "none";
+    const st = _fkDeleteState;
+    _fkDeleteState = null;
+    if (confirmed && st && typeof st.execute === "function") st.execute();
 }
 
 /**
